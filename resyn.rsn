@@ -1,0 +1,79 @@
+context directive;
+
+rule directive /\s*([\w_]+)(?:\s+([^;]+?))?\s*;/ {
+    enter directive;
+    take identifier;
+    take parameters;
+    exit;
+}
+
+rule exit_block /\s*}/ {
+    exit;
+}
+
+context regex {
+    /\\./ {
+        grab string;
+    }
+
+    /\// {
+        exit;
+    }
+
+    /[^\\\/]+/ {
+        grab string;
+    }
+}
+
+context root {
+    /\s*action\s+([\w_]+)\s*\{/ {
+        enter action;
+        take identifier;
+    }
+
+    /\s*rule\s+([\w_]+)\s+\// {
+        enter rule;
+        take identifier;
+        enter regex;
+    }
+
+    /\s*context\s+([\w_]+)\s*\{/ {
+        enter context;
+        take identifier;
+    }
+
+    /\s*context\s+([\w_]+)\s*;/ {
+        enter context;
+        take identifier;
+        exit;
+    }
+}
+
+context action {
+    exit_block;
+    directive;
+}
+
+context rule {
+    /\s*\{/ {
+        visit action;
+    }
+
+    /\s*;/ {
+        visit action;
+        exit;
+    }
+}
+
+context context {
+    exit_block;
+
+    /\s*\// {
+        enter rule;
+        enter regex;
+    }
+
+    /\s*(\**[\w_]+)\s*;/ {
+        take include;
+    }
+}
