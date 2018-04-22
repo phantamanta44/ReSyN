@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-class ParserParser {
+class ReSyNParser {
 
     private static final List<Rule> CTX_DIRECTIVE = Collections.emptyList();
     private static final Rule RULE_DIRECTIVE = new Rule("\\s*([\\w_]+)(?:\\s+([^;]+?))?\\s*;", new Action(Arrays.asList(
@@ -79,8 +79,8 @@ class ParserParser {
             )))
     );
 
-    static Parser get() {
-        return new Parser(() -> new Context("root", CTX_ROOT));
+    static Syntax get() {
+        return new Syntax(() -> new Context("root", CTX_ROOT));
     }
 
 }

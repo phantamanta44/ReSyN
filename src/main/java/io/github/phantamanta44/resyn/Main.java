@@ -1,6 +1,6 @@
 package io.github.phantamanta44.resyn;
 
-import io.github.phantamanta44.resyn.parser.Parser;
+import io.github.phantamanta44.resyn.parser.Syntax;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -13,11 +13,11 @@ public class Main {
             System.out.println("Usage: resyn <syntax file> <input file>");
             System.exit(1);
         } else {
-            Parser parser = null;
+            Syntax parser = null;
             try {
                 String syntax = Files.readAllLines(new File(args[0]).toPath()).stream()
                         .collect(Collectors.joining("\n"));
-                parser = Parser.create(syntax);
+                parser = Syntax.create(syntax);
             } catch (Exception e) {
                 System.err.println("Invalid syntax specification!");
                 e.printStackTrace();

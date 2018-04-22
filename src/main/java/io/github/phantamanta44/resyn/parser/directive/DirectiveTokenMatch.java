@@ -15,7 +15,7 @@ public class DirectiveTokenMatch implements IDirective {
 
     @Override
     public void execute(ParserState state, String match, Supplier<String> tokens) {
-        state.putToken(new TokenNode(name, match));
+        state.putToken(new TokenNode(name, match, state));
     }
 
 }

@@ -1,7 +1,7 @@
 package io.github.phantamanta44.resyn.parser;
 
 import io.github.phantamanta44.resyn.parser.construct.Context;
-import io.github.phantamanta44.resyn.parser.token.IToken;
+import io.github.phantamanta44.resyn.parser.token.Token;
 import io.github.phantamanta44.resyn.parser.token.TokenContainer;
 import io.github.phantamanta44.resyn.util.StackNode;
 
@@ -15,7 +15,7 @@ public class ParserState {
 
     ParserState(Context root) {
         this.context = root;
-        this.rootContainer = new TokenContainer("root");
+        this.rootContainer = new TokenContainer("root", this);
         this.contextualContainer = new StackNode<>(rootContainer);
         this.line = 0;
         this.pos = 0;
@@ -27,7 +27,7 @@ public class ParserState {
 
     public void setContext(Context newContext, String tokenName) {
         this.context = newContext;
-        TokenContainer token = new TokenContainer(tokenName);
+        TokenContainer token = new TokenContainer(tokenName, this);
         contextualContainer.getValue().getChildren().add(token);
         contextualContainer = contextualContainer.extend(token);
     }
@@ -42,7 +42,7 @@ public class ParserState {
         contextualContainer = contextualContainer.getParent();
     }
 
-    public void putToken(IToken token) {
+    public void putToken(Token token) {
         contextualContainer.getValue().getChildren().add(token);
     }
 

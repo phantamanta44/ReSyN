@@ -16,7 +16,7 @@ public class DirectiveTokenGroup implements IDirective {
 
     @Override
     public void execute(ParserState state, String match, Supplier<String> tokens) throws ParsingException {
-        state.putToken(new TokenNode(name, tokens.get()));
+        state.putToken(new TokenNode(name, tokens.get(), state));
     }
 
 }

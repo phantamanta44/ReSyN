@@ -1,17 +1,14 @@
 package io.github.phantamanta44.resyn.parser.token;
 
-public class TokenNode implements IToken {
+import io.github.phantamanta44.resyn.parser.ParserState;
 
-    private final String name;
+public class TokenNode extends Token {
+
     private final String content;
 
-    public TokenNode(String name, String content) {
-        this.name = name;
+    public TokenNode(String name, String content, ParserState state) {
+        super(name, state.getLine(), state.getPos());
         this.content = content;
-    }
-
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -25,7 +22,7 @@ public class TokenNode implements IToken {
 
     @Override
     public String toString() {
-        return String.format("%s: %s", name, content);
+        return String.format("%s: %s", getName(), content);
     }
 
 }
