@@ -11,12 +11,12 @@ public class Parser {
 
     private final Syntax syntax;
     private final Context rootContext;
-    private final ParserState state;
+    private ParserState state;
 
     public Parser(Syntax syntax, Context rootContext) {
         this.syntax = syntax;
         this.rootContext = rootContext;
-        this.state = new ParserState(rootContext);
+        flush();
     }
 
     public Syntax getSyntax() {
@@ -45,6 +45,10 @@ public class Parser {
 
     public int getPos() {
         return state.getPos();
+    }
+
+    public void flush() {
+        state = new ParserState(rootContext);
     }
 
     void throwError(String reason) throws ParsingException {
