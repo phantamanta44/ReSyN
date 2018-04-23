@@ -78,4 +78,10 @@ public class Parser {
         return this;
     }
 
+    public Parser parseLine(String code) throws ParsingException {
+        parse(code);
+        state.updatePos("\n");
+        return this;
+    }
+
 }
