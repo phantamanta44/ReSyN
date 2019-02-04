@@ -68,11 +68,11 @@ class ReSyNParser {
                     new DirectiveTokenGroup("identifier"),
                     new DirectiveContextSwitch(c -> new Context("regex", CTX_REGEX, c))
             ))),
-            new Rule("\\s*context\\s+([\\w_]+)\\s*\\{", new Action(Arrays.asList(
+            new Rule("\\s*context\\s+([\\w_]+!?)\\s*\\{", new Action(Arrays.asList(
                     new DirectiveContextSwitch(c -> new Context("context", CTX_CONTEXT, c)),
                     new DirectiveTokenGroup("identifier")
             ))),
-            new Rule("\\s*context\\s+([\\w_]+)\\s*;", new Action(Arrays.asList(
+            new Rule("\\s*context\\s+([\\w_]+!?)\\s*;", new Action(Arrays.asList(
                     new DirectiveContextSwitch(c -> new Context("context", CTX_CONTEXT, c)),
                     new DirectiveTokenGroup("identifier"),
                     new DirectiveContextPop(1)
@@ -80,7 +80,12 @@ class ReSyNParser {
     );
 
     static Syntax get() {
-        return new Syntax(() -> new Context("root", CTX_ROOT));
+        return new Syntax(() -> new Context("root", CTX_ROOT)) {
+            @Override
+            public Parser newPartialParser() {
+                return new Parser(this, rootContextFactory.get(), true);
+            }
+        };
     }
 
 }

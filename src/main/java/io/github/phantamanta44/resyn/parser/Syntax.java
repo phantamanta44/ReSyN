@@ -10,6 +10,7 @@ import io.github.phantamanta44.resyn.parser.token.Token;
 import io.github.phantamanta44.resyn.parser.token.TokenContainer;
 import io.github.phantamanta44.resyn.parser.token.TokenNode;
 import io.github.phantamanta44.resyn.parser.token.TokenType;
+import io.github.phantamanta44.resyn.util.Pair;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,7 +28,7 @@ public class Syntax {
         TokenContainer parsed = SYNTAX_PARSER.parse(syntax);
         Map<String, TokenContainer> actionTokens = new HashMap<>();
         Map<String, TokenContainer> ruleTokens = new HashMap<>();
-        Map<String, TokenContainer> contextTokens = new HashMap<>();
+        Map<String, Pair<Boolean, TokenContainer>> contextTokens = new HashMap<>();
         for (Token token0 : parsed.getChildren()) {
             TokenContainer token = (TokenContainer)token0;
             String identifier = ((TokenNode)token.getChildren().get(0)).getContent();
@@ -45,10 +46,12 @@ public class Syntax {
                     ruleTokens.put(identifier, token);
                     break;
                 case "context":
+                    boolean trans = identifier.endsWith("!");
+                    if (trans) identifier = identifier.substring(0, identifier.length() - 1);
                     if (contextTokens.containsKey(identifier)) {
                         throw new ParsingException("Duplicate context: " + identifier);
                     }
-                    contextTokens.put(identifier, token);
+                    contextTokens.put(identifier, new Pair<>(trans, token));
                     break;
             }
         }
@@ -67,9 +70,9 @@ public class Syntax {
             rules.put(rule.getKey(), newRule);
             uninitializedRules.put(newRule, ((TokenContainer)rule.getValue().getChildren().get(2)).getChildren());
         }
-        for (Map.Entry<String, TokenContainer> context : contextTokens.entrySet()) {
+        for (Map.Entry<String, Pair<Boolean, TokenContainer>> context : contextTokens.entrySet()) {
             List<Rule> contextRules = new LinkedList<>();
-            List<Token> tokens = context.getValue().getChildren();
+            List<Token> tokens = context.getValue().b.getChildren();
             for (int i = 1; i < tokens.size(); i++) {
                 Token token = tokens.get(i);
                 if (token.getType() == TokenType.NODE) {
@@ -98,7 +101,7 @@ public class Syntax {
                     uninitializedRules.put(newRule, ((TokenContainer)rule.getChildren().get(1)).getChildren());
                 }
             }
-            contexts.put(context.getKey(), c -> new Context(context.getKey(), contextRules, c));
+            contexts.put(context.getKey(), c -> new Context(context.getKey(), contextRules, context.getValue().a, c));
         }
 
         for (Map.Entry<String, Action> action : actions.entrySet()) {
@@ -118,7 +121,7 @@ public class Syntax {
         return new Syntax(() -> rootFactory.apply(null));
     }
 
-    private final Supplier<Context> rootContextFactory;
+    final Supplier<Context> rootContextFactory;
 
     Syntax(Supplier<Context> rootContextFactory) {
         this.rootContextFactory = rootContextFactory;
@@ -133,7 +136,7 @@ public class Syntax {
     }
 
     public Parser newPartialParser() {
-        return new Parser(this, rootContextFactory.get());
+        return new Parser(this, rootContextFactory.get(), false);
     }
 
 }

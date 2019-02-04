@@ -9,13 +9,24 @@ import java.util.regex.Matcher;
 
 public class Parser {
 
+    private static Boolean debugEnabled = null;
+
+    public static boolean isDebugFlag() {
+        if (debugEnabled == null) {
+            debugEnabled = "true".equalsIgnoreCase(System.getProperty("resyn.debug"));
+        }
+        return debugEnabled;
+    }
+
     private final Syntax syntax;
     private final Context rootContext;
+    private final boolean suppressDebug;
     private ParserState state;
 
-    public Parser(Syntax syntax, Context rootContext) {
+    public Parser(Syntax syntax, Context rootContext, boolean suppressDebug) {
         this.syntax = syntax;
         this.rootContext = rootContext;
+        this.suppressDebug = suppressDebug;
         flush();
     }
 
@@ -48,7 +59,7 @@ public class Parser {
     }
 
     public void flush() {
-        state = new ParserState(rootContext);
+        state = new ParserState(this, rootContext);
     }
 
     void throwError(String reason) throws ParsingException {
@@ -59,17 +70,24 @@ public class Parser {
         code = code.trim();
         Matcher m = null;
         Action action;
-        while (!(state.isFinished() || code.isEmpty())) {
+        while (!state.isFinished()) {
             action = null;
             for (Rule rule : state.getContext().getRules()) {
                 m = rule.getPattern().matcher(code);
                 if (m.find()) {
+                    if (shouldDebugPrint()) {
+                        System.out.printf("Matched rule /%s/ on \"%s\"\n", rule.getRawPattern(), m.group(0));
+                    }
                     action = rule.getAction();
                     break;
                 }
             }
             if (action == null) {
-                state.throwError("Could not find appropriate token in context: " + state.getContext().getName());
+                if (code.isEmpty()) {
+                    break;
+                } else {
+                    state.throwError("Could not find appropriate token in context: " + state.getContext().getName());
+                }
             }
             action.execute(state, m);
             state.updatePos(m.group());
@@ -83,6 +101,10 @@ public class Parser {
         parse(code);
         state.updatePos("\n");
         return this;
+    }
+
+    boolean shouldDebugPrint() {
+        return !suppressDebug && isDebugFlag();
     }
 
 }

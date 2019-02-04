@@ -5,8 +5,11 @@ import io.github.phantamanta44.resyn.parser.token.Token;
 import io.github.phantamanta44.resyn.parser.token.TokenContainer;
 import io.github.phantamanta44.resyn.util.StackNode;
 
+import java.util.List;
+
 public class ParserState {
 
+    private final Parser parser;
     private Context context;
     private final TokenContainer rootContainer;
     private StackNode<TokenContainer> contextualContainer;
@@ -14,7 +17,8 @@ public class ParserState {
     private int pos;
     private boolean terminated;
 
-    ParserState(Context root) {
+    ParserState(Parser parser, Context root) {
+        this.parser = parser;
         this.context = root;
         this.rootContainer = new TokenContainer("root", this);
         this.contextualContainer = new StackNode<>(rootContainer);
@@ -30,9 +34,14 @@ public class ParserState {
     public void setContext(Context newContext, String tokenName) {
         if (terminated) throw new IllegalStateException("Parser already terminated!");
         this.context = newContext;
-        TokenContainer token = new TokenContainer(tokenName, this);
-        contextualContainer.getValue().getChildren().add(token);
-        contextualContainer = contextualContainer.extend(token);
+        if (!newContext.isTransparent()) {
+            TokenContainer token = new TokenContainer(tokenName, this);
+            contextualContainer.getValue().getChildren().add(token);
+            contextualContainer = contextualContainer.extend(token);
+        }
+        if (parser.shouldDebugPrint()) {
+            System.out.println("Context up to " + context.getName());
+        }
     }
 
     public void popContext() {
@@ -43,13 +52,28 @@ public class ParserState {
 
     private void doPopContext() {
         if (terminated) throw new IllegalStateException("Parser already terminated!");
+        if (!context.isTransparent()) contextualContainer = contextualContainer.getParent();
         context = context.getParent();
-        contextualContainer = contextualContainer.getParent();
+        if (parser.shouldDebugPrint()) {
+            System.out.println("Context down to " + context.getName());
+        }
     }
 
     public void putToken(Token token) {
         if (terminated) throw new IllegalStateException("Parser already terminated!");
         contextualContainer.getValue().getChildren().add(token);
+        if (parser.shouldDebugPrint()) {
+            System.out.println("Captured token: " + token.getName());
+        }
+    }
+
+    public void stealFromParent() {
+        if (terminated) throw new IllegalStateException("Parser already terminated!");
+        List<Token> parent = contextualContainer.getParent().getValue().getChildren();
+        contextualContainer.getValue().getChildren().add(parent.remove(parent.size() - 2));
+        if (parser.shouldDebugPrint()) {
+            System.out.println("Stole token from parent");
+        }
     }
 
     TokenContainer getRootToken() {
@@ -75,6 +99,9 @@ public class ParserState {
     }
 
     public void finish() {
+        if (parser.shouldDebugPrint()) {
+            System.out.println("Parser terminated");
+        }
         terminated = true;
     }
 

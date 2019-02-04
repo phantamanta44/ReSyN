@@ -37,12 +37,12 @@ context root {
         enter regex;
     }
 
-    /\s*context\s+([\w_]+)\s*\{/ {
+    /\s*context\s+([\w_]+!?)\s*\{/ {
         enter context;
         take identifier;
     }
 
-    /\s*context\s+([\w_]+)\s*;/ {
+    /\s*context\s+([\w_]+!?)\s*;/ {
         enter context;
         take identifier;
         exit;

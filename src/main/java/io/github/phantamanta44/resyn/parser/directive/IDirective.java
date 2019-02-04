@@ -53,6 +53,12 @@ public interface IDirective {
             case "grab":
                 if (args.length != 1) throw new ParsingException("Wrong number of parameters to grab!");
                 return new DirectiveTokenMatch(args[0]);
+            case "finish":
+                if (args.length != 0) throw new ParsingException("Wrong number of parameters to finish!");
+                return new DirectiveFinish();
+            case "steal":
+                if (args.length != 0) throw new ParsingException("Wrong number of parameters to steal!");
+                return new DirectiveSteal();
         }
         throw new ParsingException("Unknown directive: " + directive);
     }
