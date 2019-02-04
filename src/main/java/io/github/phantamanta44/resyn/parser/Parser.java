@@ -59,7 +59,7 @@ public class Parser {
         code = code.trim();
         Matcher m = null;
         Action action;
-        while (!code.isEmpty()) {
+        while (!(state.isFinished() || code.isEmpty())) {
             action = null;
             for (Rule rule : state.getContext().getRules()) {
                 m = rule.getPattern().matcher(code);
@@ -75,6 +75,7 @@ public class Parser {
             state.updatePos(m.group());
             code = code.substring(m.end());
         }
+        if (!code.isEmpty()) throwError("Parser terminated prematurely!");
         return this;
     }
 

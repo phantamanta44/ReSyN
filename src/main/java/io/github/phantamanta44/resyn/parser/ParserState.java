@@ -12,6 +12,7 @@ public class ParserState {
     private StackNode<TokenContainer> contextualContainer;
     private int line;
     private int pos;
+    private boolean terminated;
 
     ParserState(Context root) {
         this.context = root;
@@ -19,6 +20,7 @@ public class ParserState {
         this.contextualContainer = new StackNode<>(rootContainer);
         this.line = 0;
         this.pos = 0;
+        this.terminated = false;
     }
 
     public Context getContext() {
@@ -26,6 +28,7 @@ public class ParserState {
     }
 
     public void setContext(Context newContext, String tokenName) {
+        if (terminated) throw new IllegalStateException("Parser already terminated!");
         this.context = newContext;
         TokenContainer token = new TokenContainer(tokenName, this);
         contextualContainer.getValue().getChildren().add(token);
@@ -33,16 +36,19 @@ public class ParserState {
     }
 
     public void popContext() {
+        if (terminated) throw new IllegalStateException("Parser already terminated!");
         while (context.isVisiting()) doPopContext();
         doPopContext();
     }
 
     private void doPopContext() {
+        if (terminated) throw new IllegalStateException("Parser already terminated!");
         context = context.getParent();
         contextualContainer = contextualContainer.getParent();
     }
 
     public void putToken(Token token) {
+        if (terminated) throw new IllegalStateException("Parser already terminated!");
         contextualContainer.getValue().getChildren().add(token);
     }
 
@@ -66,6 +72,14 @@ public class ParserState {
             pos = 0;
         }
         pos += match.length() - index;
+    }
+
+    public void finish() {
+        terminated = true;
+    }
+
+    public boolean isFinished() {
+        return terminated;
     }
 
     public void throwError(String reason) throws ParsingException {

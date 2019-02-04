@@ -17,7 +17,10 @@ public class DirectiveContextPop implements IDirective {
     public void execute(ParserState state, String match, Supplier<String> tokens) throws ParsingException {
         if (count < 1) state.throwError("Invalid exit count!");
         for (int i = 0; i < count; i++) {
-            if (!state.getContext().hasParent()) state.throwError("Context does not have parent!");
+            if (!state.getContext().hasParent()) {
+                state.finish();
+                break;
+            }
             state.popContext();
         }
     }
